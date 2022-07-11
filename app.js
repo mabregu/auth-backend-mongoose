@@ -1,6 +1,8 @@
 const express = require("express");
 const app = express();
-const bodyParser = require('body-parser');
+
+const morgan = require('morgan');
+const cors = require('cors');
 
 // require database connection 
 const dbConnect = require("./db/dbConnect");
@@ -8,14 +10,11 @@ const dbConnect = require("./db/dbConnect");
 // execute database connection 
 dbConnect();
 
-// body parser configuration
-app.use(bodyParser.json());
-  app.use(bodyParser.urlencoded({ extended: true }));
+app.use(express.urlencoded({ extended: true }));
+app.use(express.json());
+app.use(morgan('dev'));
+app.use(cors());
 
-app.get("/", (request, response, next) => {
-  response.json({ message: "Hey! This is your server response!" });
-  next();
-});
-
+app.use("/", require("./routes/usersRoutes"));
 
 module.exports = app;
