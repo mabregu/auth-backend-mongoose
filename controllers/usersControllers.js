@@ -1,79 +1,24 @@
-const bcrypt = require('bcrypt');
-const jwt = require("jsonwebtoken");
 const User = require('../models/userModel');
 const usersControllers = {
-    register: (req, res) => {
-        console.log(req.body);
-        bcrypt
-            .hash(req.body.password, 10)
-            .then(hash => {
-                let user = new User({
-                    name: req.body.name,
-                    surname: req.body.surname,
-                    email: req.body.email,
-                    birthDate: req.body.birthDate,
-                    password: hash
-                });
-                
-                user.save()
-                    .then(result => {
-                        res.status(201).json({
-                            message: 'User created',
-                            result: result
-                        });
-                    })
-                    .catch(err => {
-                        res.status(500).json({
-                            error: err
-                        });
-                    })
-                ;
-            })
-            .catch(err => {
-                res.json({ message: 'Something went wrong' });
-            })
-        ;
+    getAllUsers: async (req, res) => {
+        try {
+            const users = await User
+                .find()
+                .select('-password -__v')
+                .sort({ createdAt: -1 });
+            ;
+            res.json(users);
+        } catch (e) {
+            res.status(500).json({ message: e.message });
+        }
     },
-    login: (req, res) => {
-        let email = req.body.email;
-        let password = req.body.password;
-        User.findOne({ email: email })
-            .then(user => {
-                if (!user) {
-                    return res.status(401).json({
-                        message: 'Auth failed'
-                    });
-                }
-                bcrypt.compare(password, user.password, (err, result) => {
-                    if (err) {
-                        return res.status(401).json({
-                            message: 'Auth failed'
-                        });
-                    }
-                    if (result) {
-                        const token = jwt.sign({
-                            email: user.email,
-                            userId: user._id
-                        },
-                            'secret',
-                            { expiresIn: '1h' }
-                        );
-                        return res.status(200).json({
-                            message: 'Auth successful',
-                            token: token
-                        });
-                    }
-                    res.status(401).json({
-                        message: 'Auth failed'
-                    });
-                }
-                );
-            }).catch(err => {
-                res.status(500).json({
-                    error: err
-                });
-            }
-            );
+    getUser: async (req, res) => {
+        try {
+            const user = await User.findById(req.params.id);
+            res.json(user);
+        } catch (e) {
+            res.status(500).json({ message: e.message });
+        }
     }
 }
 
