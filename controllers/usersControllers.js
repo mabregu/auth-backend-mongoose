@@ -5,7 +5,8 @@ const usersControllers = {
             const users = await User
                 .find()
                 .select('-password -__v')
-                .sort({ createdAt: -1 });
+                .sort({ createdAt: -1 })
+                .limit(15)
             ;
             res.json(users);
         } catch (e) {
